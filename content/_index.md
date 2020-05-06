@@ -2,7 +2,7 @@
 title: "Retrobian"
 description: "Retro Debian Installations"
 ---
-Hi.
+Hi,
 
 I'm Thomas and I have an interest in older Debian Installations and this site enables anyone to see and try out older versions of Debian and documents how to do this. Below is the list of versions I have tried.
 

@@ -1,6 +1,6 @@
 ---
 title: "Install"
-description: "Random Installation Notes"
+description: "Installation Notes and Instructions"
 ---
 ## Virtual Hardware
 This was all created using QEMU with default hardware. The machine type used was the default on Debian testing/sid as of 5th May 2020:
@@ -19,13 +19,12 @@ The network card for all the demi machines is the ISA NE2000. The reason for thi
 ## Networking and DHCP
 Beleve it on not, but a DHCP client didn't land untill round 2.2. This all the machines are statically configured with the IP: 192.168.122.10/24
 
-## Partition tables
-
 ## Filesystems
+To create an ext2 filesystem thats readable on old Linux (1.2) the main option that is needed is "-r 0" to set the filesystem revision to 0. However to create a filesystem thats most similar to the one created in Debian 0.93 use:
+* mkfs.ext2 -b 1024 -r 0 -i 4096 -F \<device\>
+* tune2fs -E hash_alg=legacy \<device\>
 
-
-
-## sfdisk tricks
+## Tricks with sfdisk
 The sfdisk utility can be used to save and destroy partition tables. To save a partition run "sfdisk -d /dev/nbd". This can be restored in a shell script thus:
 
 ```

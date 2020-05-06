@@ -78,8 +78,6 @@ if [ "$mode" == "genrepo" ]; then
         sudo parted /dev/nbd0 mklabel msdos
         sudo parted /dev/nbd0 mkpart pri 1 100%
         sudo mkfs.ext2 -r 0 /dev/nbd0p1
-        #sudo mkfs.ext2 -b 1024 -r 0 -i 4096 -F /dev/nbd0p1
-        #sudo tune2fs -E hash_alg=legacy /dev/nbd0p1
         mkdir -p retrobian-repo/$version-$release-repo.qcow2.d
         sudo mount /dev/nbd0p1 retrobian-repo/$version-$release-repo.qcow2.d
         sudo rsync -a retrobian-repo/$version-$release-repo/. retrobian-repo/$version-$release-repo.qcow2.d/.
@@ -205,6 +203,16 @@ if [ "$mode" == "deflate" ]; then
         qemu-img convert -p -c -O qcow2 retrobian-img/$version-$release.qcow2 \
                 retrobian-img/$version-$release.qcow2.new
         mv retrobian-img/$version-$release.qcow2.new retrobian-img/$version-$release.qcow2
+        exit
+fi
+
+if [ "$mode" == "fdisk" ]; then
+        sudo modprobe nbd max_part=63
+        sudo qemu-nbd -c /dev/nbd0 --cache=writeback retrobian-img/$version-$release.qcow2
+        sudo sfdisk -d /dev/nbd0
+        #sudo fdisk -l /dev/nbd0
+        #sudo fdisk -l -u=cylinders /dev/nbd0
+        sudo qemu-nbd -d /dev/nbd0
         exit
 fi
 

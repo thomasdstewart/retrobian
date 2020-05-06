@@ -8,6 +8,6 @@ td {
         padding: 1rem;
 }
 
-p,ol,ul {
+p,ol,ul,pre {
     text-align: left;
 }

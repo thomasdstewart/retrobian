@@ -1,5 +1,6 @@
 ---
 title: "Run"
+description: "Running Debian"
 ---
 # Concept
 The concept is that all that is needed to run these Old Debian releases is in the retrobian repository: https://gitlab.com/thomasdstewart/retrobian.git. It contain this website, a helper shell script and some config fies.
