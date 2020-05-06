@@ -8,6 +8,8 @@ SectionPagesMenu = "main"
 [params]
 subtitle = "Retro Debian installations"
 featured_image = "/versions/0.93-login.png"
+recent_posts_number = 10
+custom_css = ["custom.css"]
 
 [author]
 name = "Thomas Stewart"

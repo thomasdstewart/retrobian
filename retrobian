@@ -212,7 +212,7 @@ hd="$version-$release.qcow2"
 if [ ! -f $hd -a -f retrobian-img/$hd ]; then
         qemu-img create -f qcow2 -b retrobian-img/$hd $hd
 elif [ ! -f $hd ]; then
-        qemu-img create -f qcow2 -o backing_file="json:{\"file.driver\":\"https\",,\"file.timeout\":\"10\",,\"file.url\":\"https://img.retrobian.org.uk/retrobian-img//$hd\"}" $hd
+        qemu-img create -f qcow2 -o backing_file="json:{\"file.driver\":\"http\",,\"file.timeout\":\"10\",,\"file.url\":\"http://img.retrobian.org.uk/retrobian-img/$hd\"}" $hd
 fi
 opts="$opts --device ide-hd,drive=ide0-hd0,bus=ide.0,unit=0"
 opts="$opts --blockdev qcow2,node-name=ide0-hd0,file.driver=file,file.filename=$hd,cache-size=$(( 256*1024*1024 ))"
@@ -220,17 +220,18 @@ opts="$opts --blockdev qcow2,node-name=ide0-hd0,file.driver=file,file.filename=$
 if [ -f retrobian-repo/$version-$release-repo.qcow2 ]; then
         opts="$opts --device ide-hd,drive=ide0-hd1,bus=ide.0,unit=1"
         opts="$opts --blockdev qcow2,node-name=ide0-hd1,file.driver=file,file.filename=retrobian-repo/$version-$release-repo.qcow2"
+else
+        if [ ! -f $version-$release-repo.qcow2 ]; then
+                qemu-img create -f qcow2 -o backing_file="json:{\"file.driver\":\"http\",,\"file.timeout\":\"10\",,\"file.url\":\"http://repo.retrobian.org.uk/retrobian-repo/$version-$release-repo.qcow2\"}" $version-$release-repo.qcow2
+        fi
+        opts="$opts --device ide-hd,drive=ide0-hd1,bus=ide.0,unit=1"
+        opts="$opts --blockdev qcow2,node-name=ide0-hd1,file.driver=file,file.filename=$version-$release-repo.qcow2"
 fi
 
-opts="$opts --device ne2k_isa,netdev=net0 --netdev tap,id=net0,script=no,downscript=no"
-#opts="$opts --device ne2k_isa,netdev=net0 --netdev user,id=net0,hostfwd=tcp::2323-:23"
+opts="$opts --device ne2k_isa,netdev=net0 --netdev tap,id=net0,ifname=retrobian0,script=no,downscript=no"
+opts="$opts --name Debian-$release-$version --enable-kvm --vga cirrus"
 
-opts="$opts --name Debian-$release-$version"
-opts="$opts --vga cirrus"
-
-sudo qemu-system-i386 -enable-kvm $opts &
-sleep 1
-for tap in $(/bin/ip -br link | awk '/^tap/{print $1}' | xargs); do
-        sudo ip link set $tap up
-        sudo ip link set $tap master virbr0
-done
+sudo qemu-system-i386 $opts &
+sleep 2
+sudo ip link set retrobian0 up
+sudo ip link set retrobian0 master virbr0
