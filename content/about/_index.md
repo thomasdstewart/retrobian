@@ -10,4 +10,6 @@ I have published this because I have over the years done this several times with
 
 Debian is awesome and it's quite amazing to see the progress Linux has been made over the years.
 
-Thomas Stewart <thomas@stewarts.org.uk>
+Thanks
+
+Thomas Stewart - thomas@stewarts.org.uk

@@ -3,7 +3,7 @@ title: "Retrobian"
 description: "Retro Debian Installations"
 ---
 
-I have an interest in older Debian Installations and this site enables anyone to see and try out older versions of Debian and documents how to do this. Below is the list of versions I have:
+I have an interest in older Debian Installations and this site enables anyone to see and try out older versions of Debian and documents how to do this. Below is the list of versions I have tried.
 
 | Debian Version (Code Name)              | Code Name | Release Date  | Repo Size | Linux Version | GCC Version |
 | ---                                     | ---       | ---           | ---       | ---           | ---         |
