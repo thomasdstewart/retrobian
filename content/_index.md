@@ -2,10 +2,13 @@
 title: "Retrobian"
 description: "Retro Debian Installations"
 ---
+Hi.
 
-I have an interest in older Debian Installations and this site enables anyone to see and try out older versions of Debian and documents how to do this. Below is the list of versions I have tried.
+I'm Thomas and I have an interest in older Debian Installations and this site enables anyone to see and try out older versions of Debian and documents how to do this. Below is the list of versions I have tried.
 
-| Debian Version (Code Name)              | Code Name | Release Date  | Repo Size | Linux Version | GCC Version |
+Thomas Stewart - thomas@stewarts.org.uk
+
+| Debian Version                          | Code Name | Release Date  | Repo Size | Linux Version | GCC Version |
 | ---                                     | ---       | ---           | ---       | ---           | ---         |
 | [0.91]({{< relref "0.91-debian.md" >}}) |           | January 1994  | 84M       | 0.99.14w      | 2.5.7       |
 | [0.93]({{< relref "0.93-debian.md" >}}) |           | November 1995 | 196M      | 1.2.13        | 2.6.3       |

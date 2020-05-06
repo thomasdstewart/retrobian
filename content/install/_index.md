@@ -1,5 +1,5 @@
 ---
-title: "Install Notes"
+title: "Install"
 description: "Random Installation Notes"
 ---
 ## Virtual Hardware
@@ -18,6 +18,12 @@ The network card for all the demi machines is the ISA NE2000. The reason for thi
 
 ## Networking and DHCP
 Beleve it on not, but a DHCP client didn't land untill round 2.2. This all the machines are statically configured with the IP: 192.168.122.10/24
+
+## Partition tables
+
+## Filesystems
+
+
 
 ## sfdisk tricks
 The sfdisk utility can be used to save and destroy partition tables. To save a partition run "sfdisk -d /dev/nbd". This can be restored in a shell script thus:

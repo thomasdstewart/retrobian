@@ -17,7 +17,7 @@ case $version in
 "1.1")
         release="buzz"
         releasedir="$release"
-        opts="--device isa-serial,chardev=serial0 --chardev msmouse,id=serial0"
+        opts="$opts --device isa-serial,chardev=serial0 --chardev msmouse,id=serial0"
         ;;
 "1.2")
         release="rex"
