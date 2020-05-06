@@ -1,0 +1,67 @@
+#cat 0.0-template-XF86Config | grep -v "rv0\.9" | sed 's/#.*//' > 0.9-debian-XF86Config; cat 0.0-template-XF86Config | grep -v "rv1\.1" | sed 's/#.*//' > 1.1-buzz-XF86Config; cat 0.0-template-XF86Config | grep -v "rv1\.2" | sed 's/#.*//' > 1.2-rex-XF86Config; cat 0.0-template-XF86Config | grep -v "rv1\.3" | sed 's/#.*//' > 1.3-bo-XF86Config; cat 0.0-template-XF86Config | grep -v "rv2\.0" | sed 's/#.*//' > 2.0-hamm-XF86Config; cat 0.0-template-XF86Config | grep -v "rv2\.1" | sed 's/#.*//' > 2.1-slink-XF86Config; cat 0.0-template-XF86Config | grep -v "rv2\.2" | sed 's/#.*//' > 2.2-potato-XF86Config; cat 0.0-template-XF86Config | grep -v "rv3\.0" | sed 's/#.*//' > 3.0-woody-XF86Config
+
+Section "Files"
+  RgbPath  "/usr/X11R6/lib/X11/rgb"
+  FontPath "/usr/X11R6/lib/X11/fonts/misc:unscaled"
+  FontPath "/usr/X11R6/lib/X11/fonts/cyrillic/:unscaled"
+  FontPath "/usr/X11R6/lib/X11/fonts/75dpi:unscaled"
+  FontPath "/usr/X11R6/lib/X11/fonts/100dpi:unscaled"
+  FontPath "/usr/X11R6/lib/X11/fonts/Type1/"
+  FontPath "/usr/X11R6/lib/X11/fonts/Speedo/"
+  FontPath "/usr/X11R6/lib/X11/fonts/misc/"
+  FontPath "/usr/X11R6/lib/X11/fonts/75dpi/"
+  FontPath "/usr/X11R6/lib/X11/fonts/100dpi/"
+EndSection
+
+Section "Keyboard"
+  Protocol "Standard"
+  XkbRules "xfree86" #rv0.9 rv1.1
+  XkbModel "pc104"   #rv0.9 rv1.1
+  XkbLayout "gb"     #rv0.9 rv1.1
+EndSection
+
+Section "Pointer"
+  Protocol "PS/2"       #rv1.1
+  Protocol "Microsoft"  #rv0.9 rv1.2 rv1.3 rv2.0 rv2.1 rv2.2 rv3.0
+  Device "/dev/psmouse" #rv1.1 rv1.2 rv1.3 rv2.0 rv2.1 rv2.2 rv3.0
+  Device "/dev/psaux"   #rv0.9 rv1.1
+  Device "/dev/ttyS0"   #rv0.9 rv1.2 rv1.3 rv2.0 rv2.1 rv2.2 rv3.0
+EndSection
+
+Section "Monitor"
+  Identifier "Monitor"
+  HorizSync 31.5-82.0
+  HorizSync 30-85
+  VertRefresh 40-150
+  Modeline "800x600" 40 800 840 968 1056 600 601 605 628 +hsync +vsync
+  Modeline "800x600" 64.98 800 864 928 1088 600 616 621 657 -hsync -vsync
+  Modeline "1024x768" 85.23 1024 1032 1152 1360 768 784 787 823
+EndSection
+
+Section "Device"
+  Identifier "Card"
+  VideoRam 4096
+  Clocks 25.23 28.32 41.16 36.08 31.50 39.99 40 45.08 49.87 64.98 72.16 75.00 80.01 85.23 90.00 95.02 100.23 108.03 109.77 120.05 126.00 130.06 135.00
+  Option "no_bitblt"
+  Option "noaccel"
+EndSection
+
+Section "Screen"
+  Driver "vga16"
+  Device "Card"
+  Monitor "Monitor"
+  Subsection "Display"
+    Modes "800x600"
+  EndSubsection
+EndSection
+
+Section "Screen"
+  Driver "SVGA"
+  Device "Card"
+  Monitor "Monitor"
+  DefaultColorDepth 24
+  SubSection "Display"
+    Depth 24
+    Modes "1024x768"
+  EndSubSection
+EndSection

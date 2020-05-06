@@ -1,0 +1,15 @@
+baseURL = "https://retrobian.org.uk/"
+title = "Retrobian"
+languageCode = "en-GB"
+theme = "ananke"
+
+SectionPagesMenu = "main"
+
+[params]
+subtitle = "Retro Debian installations"
+featured_image = "/versions/0.93-login.png"
+
+[author]
+name = "Thomas Stewart"
+email = "thomas@stewarts.org.uk"
+

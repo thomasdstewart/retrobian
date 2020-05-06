@@ -1,0 +1,55 @@
+---
+title: "Install Notes"
+description: "Random Installation Notes"
+---
+## Virtual Hardware
+This was all created using QEMU with default hardware. The machine type used was the default on Debian testing/sid as of 5th May 2020:
+
+```
+$ qemu-system-i386 --machine help | grep def
+pc-i440fx-4.2        Standard PC (i440FX + PIIX, 1996) (default)
+```
+
+## Disk layout
+The machines have two IDE disks, the first is the OS disk and the second is a disk with a mirror of the repository. The OS disk has one big partition for the root (/) dir. This is 1G in size except for 0.91 where it is smaller. The repo disk varies in size and is based on the size of the repo. Given this is old school links and these are IDE disks they appear as /dev/hda1 and /dev/hdb2.
+
+## Virtual Network Card
+The network card for all the demi machines is the ISA NE2000. The reason for this is that it's supported in QEMU and across all the versions of Debian. Being an ISA card, the io and irq ports needs to be given as paramaters when the Linux Kernel moduel is loaded, these are "irq=9 io=0x300".
+
+## Networking and DHCP
+Beleve it on not, but a DHCP client didn't land untill round 2.2. This all the machines are statically configured with the IP: 192.168.122.10/24
+
+## sfdisk tricks
+The sfdisk utility can be used to save and destroy partition tables. To save a partition run "sfdisk -d /dev/nbd". This can be restored in a shell script thus:
+
+```
+cat << EOF | sudo sfdisk /dev/nbd0
+label: dos
+label-id: 0x00000000
+device: /dev/nbd0
+unit: sectors
+
+/dev/nbd0p1 : start=          63, size=     2064321, type=83
+EOF
+```
+
+This can then define what ever crazy layout thats needed.
+
+## Choosing X server
+Initially /etc/X/X11 is a symbolic link to the right server, eg /usr/X11R6/bin/X_VGA16. So to set one can run:
+
+```ln -s /usr/X11R6/bin/X_VGA16 /etc/X11/X```
+
+
+
+## List of Random Websites that were usefull
+* https://www.ibiblio.org/pub/historic-linux/distributions/debian-1.1/i386/
+* https://archive.fosdem.org/2018/schedule/event/vai_qemu_jungle/attachments/slides/2539/export/events/attachments/vai_qemu_jungle/slides/2539/qemu_cli_jungle.pdf
+* http://www.h7.dion.ne.jp/~qemu-win/HowToNetwork-en.html#isapc
+* http://archive.debian.org/debian/dists/Debian-1.1/
+* http://ftp.e.kth.se/pub/mpkg/distfiles/netscape/4.7/
+* https://fadeevab.com/how-to-setup-qemu-output-to-console-and-automate-using-shell-script/
+* https://serverfault.com/questions/471719/how-to-start-qemu-directly-in-the-console-not-in-curses-or-sdl
+* https://web.archive.org/web/20180104171638/http://nairobi-embedded.org/qemu_monitor_console.html
+* https://serverfault.com/questions/329287/free-up-not-used-space-on-a-qcow2-image-file-on-kvm-qemu
+* https://manpages.debian.org/buster/qemu-system-x86/qemu-system-i386.1.en.html

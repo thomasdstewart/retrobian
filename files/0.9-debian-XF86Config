@@ -1,0 +1,61 @@
+
+
+Section "Files"
+  RgbPath  "/usr/X11R6/lib/X11/rgb"
+  FontPath "/usr/X11R6/lib/X11/fonts/misc:unscaled"
+  FontPath "/usr/X11R6/lib/X11/fonts/cyrillic/:unscaled"
+  FontPath "/usr/X11R6/lib/X11/fonts/75dpi:unscaled"
+  FontPath "/usr/X11R6/lib/X11/fonts/100dpi:unscaled"
+  FontPath "/usr/X11R6/lib/X11/fonts/Type1/"
+  FontPath "/usr/X11R6/lib/X11/fonts/Speedo/"
+  FontPath "/usr/X11R6/lib/X11/fonts/misc/"
+  FontPath "/usr/X11R6/lib/X11/fonts/75dpi/"
+  FontPath "/usr/X11R6/lib/X11/fonts/100dpi/"
+EndSection
+
+Section "Keyboard"
+  Protocol "Standard"
+EndSection
+
+Section "Pointer"
+  Protocol "PS/2"       
+  Device "/dev/psmouse" 
+EndSection
+
+Section "Monitor"
+  Identifier "Monitor"
+  HorizSync 31.5-82.0
+  HorizSync 30-85
+  VertRefresh 40-150
+  Modeline "800x600" 40 800 840 968 1056 600 601 605 628 +hsync +vsync
+  Modeline "800x600" 64.98 800 864 928 1088 600 616 621 657 -hsync -vsync
+  Modeline "1024x768" 85.23 1024 1032 1152 1360 768 784 787 823
+EndSection
+
+Section "Device"
+  Identifier "Card"
+  VideoRam 4096
+  Clocks 25.23 28.32 41.16 36.08 31.50 39.99 40 45.08 49.87 64.98 72.16 75.00 80.01 85.23 90.00 95.02 100.23 108.03 109.77 120.05 126.00 130.06 135.00
+  Option "no_bitblt"
+  Option "noaccel"
+EndSection
+
+Section "Screen"
+  Driver "vga16"
+  Device "Card"
+  Monitor "Monitor"
+  Subsection "Display"
+    Modes "800x600"
+  EndSubsection
+EndSection
+
+Section "Screen"
+  Driver "SVGA"
+  Device "Card"
+  Monitor "Monitor"
+  DefaultColorDepth 24
+  SubSection "Display"
+    Depth 24
+    Modes "1024x768"
+  EndSubSection
+EndSection
