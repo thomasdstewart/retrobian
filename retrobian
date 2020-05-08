@@ -236,10 +236,12 @@ else
         opts="$opts --blockdev qcow2,node-name=ide0-hd1,file.driver=file,file.filename=$version-$release-repo.qcow2"
 fi
 
-opts="$opts --device ne2k_isa,netdev=net0 --netdev tap,id=net0,ifname=retrobian0,script=no,downscript=no"
+opts="$opts --device ne2k_isa,netdev=net0"
+#opts="$opts --netdev tap,id=net0,ifname=retrobian0,script=no,downscript=no"
+opts="$opts --netdev user,id=net0,net=192.168.122.0/24,host=192.168.122.1,dns=192.168.122.2,hostfwd=tcp::2323-192.168.122.10:23"
 opts="$opts --name Debian-$release-$version --enable-kvm --vga cirrus"
 
-sudo qemu-system-i386 $opts &
-sleep 2
-sudo ip link set retrobian0 up
-sudo ip link set retrobian0 master virbr0
+sudo qemu-system-i386 $opts 
+#sleep 2
+#sudo ip link set retrobian0 up
+#sudo ip link set retrobian0 master virbr0
