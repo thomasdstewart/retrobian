@@ -3,7 +3,7 @@
 	url = https://github.com/budparr/gohugo-theme-ananke.git
 [submodule "retrobian-repo"]
 	path = retrobian-repo
-	url = thomas@64.137.167.95:/var/www/html/retrobian-repo.git
+	url = thomas@copal.stewarts.org.uk:/var/www/html/retrobian-repo/.git
 [submodule "retrobian-img"]
 	path = retrobian-img
-	url = thomas@64.137.167.95:/var/www/html/retrobian-img.git
+	url = thomas@copal.stewarts.org.uk:/var/www/html/retrobian-img/.git
