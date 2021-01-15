@@ -4,7 +4,7 @@ description: "Retro Debian Installations"
 ---
 Hi,
 
-I'm Thomas and I have an interest in older the Debian GNU/Linux distribution releases. This site allows anyone to see and try out older versions of Debian and documents how to do this. Below is the list of versions I have tried.
+I'm Thomas and I have an interest in older (Retro) Debian GNU/Linux distribution releases. This site allows anyone to see and try out older versions of Debian and documents how to do this. Below is the list of versions I have tried.
 
 Thomas Stewart - thomas@stewarts.org.uk
 
