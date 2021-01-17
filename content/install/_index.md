@@ -14,13 +14,13 @@ pc-i440fx-4.2        Standard PC (i440FX + PIIX, 1996) (default)
 The machines have two IDE disks, the first is the OS disk and the second is a disk with a mirror of the repository. The OS disk has one big partition for the root (/) dir. This is 1G in size except for 0.91 where it is smaller. The repo disk varies in size and is based on the size of the repo. Given this is old school links and these are IDE disks they appear as /dev/hda1 and /dev/hdb2.
 
 ## Virtual Network Card
-The network card for all the demi machines is the ISA NE2000. The reason for this is that it's supported in QEMU and across all the versions of Debian. Being an ISA card, the io and irq ports needs to be given as paramaters when the Linux Kernel moduel is loaded, these are "irq=9 io=0x300".
+The network card for all the demi machines is the ISA NE2000. The reason for this is that it's supported in QEMU and across all the versions of Debian. Being an ISA card, the io and irq ports needs to be given as parameters when the Linux Kernel module is loaded, these are "irq=9 io=0x300".
 
 ## Networking and DHCP
-Beleve it on not, but a DHCP client didn't land untill round 2.2. This all the machines are statically configured with the IP: 192.168.122.10/24
+Believe it on not, but a DHCP client didn't land untill round 2.2. This all the machines are statically configured with the IP: 192.168.122.10/24
 
 ## Filesystems
-To create an ext2 filesystem thats readable on old Linux (1.2) the main option that is needed is "-r 0" to set the filesystem revision to 0. However to create a filesystem thats most similar to the one created in Debian 0.93 use:
+To create an ext2 file system that is readable on old Linux (1.2) the main option that is needed is "-r 0" to set the file system revision to 0. However to create a file system that is most similar to the one created in Debian 0.93 use:
 * mkfs.ext2 -b 1024 -r 0 -i 4096 -F \<device\>
 * tune2fs -E hash_alg=legacy \<device\>
 
@@ -38,7 +38,10 @@ unit: sectors
 EOF
 ```
 
-This can then define what ever crazy layout thats needed.
+This can then define what ever crazy layout that is needed.
+
+## X11 Configuration
+Over the years the method to configure X11 has changed and throughout it's been somewhat a dark art combination with a lot of trial and error. I have created a template XF86Config and individual XF86Config configuration files for each Debian release.
 
 ## Choosing X server
 Initially /etc/X/X11 is a symbolic link to the right server, eg /usr/X11R6/bin/X_VGA16. So to set one can run:
