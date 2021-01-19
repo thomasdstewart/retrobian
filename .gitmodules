@@ -1,9 +1,6 @@
 [submodule "themes/ananke"]
 	path = themes/ananke
 	url = https://github.com/budparr/gohugo-theme-ananke.git
-[submodule "retrobian-repo"]
-	path = retrobian-repo
-	url = thomas@copal.stewarts.org.uk:/var/www/html/retrobian-repo/.git
 [submodule "retrobian-img"]
 	path = retrobian-img
 	url = thomas@copal.stewarts.org.uk:/var/www/html/retrobian-img/.git
