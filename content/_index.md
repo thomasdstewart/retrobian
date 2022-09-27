@@ -21,3 +21,4 @@ Thomas Stewart - thomas@stewarts.org.uk
 | [3.0]({{<  relref "3.0-woody.md" >}})   | Woody     | July 2002     | ?         |  ?            | ?           |
 
 [Debian version history on Wikipedia](https://en.wikipedia.org/wiki/Debian_version_history)
+[A Brief History of Debian - Chapter 4. A Detailed History - The 0.x Releases](https://www.debian.org/doc/manuals/project-history/detailed.en.html#rel-0)
