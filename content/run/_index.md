@@ -1,6 +1,7 @@
 ---
 title: "Run"
 description: "Running Debian"
+featured_image: "/install/0.93-debian-login.png"
 ---
 # The Retrobian Concept
 The concept is that all that is needed to try an old Debian release is in the retrobian repository: https://gitlab.com/thomasdstewart/retrobian.git. It contain this website, a helper shell script and some config files. The idea is that with these tools there is enough information to make it easy to create and install new virtual machines ready to install any old version of Debian. Information on what type of virtual machine is required and instructions on how to install each version is given.

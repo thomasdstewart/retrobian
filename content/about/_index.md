@@ -1,6 +1,7 @@
 ---
 title: "About"
 description: "Retro Debian Installations"
+featured_image: "/install/0.93-debian-login.png"
 ---
 I first used SuSE Linux 5.2 in 1998 thanks to my Dad who got a copy of it it on a computer magazine, he printed the entire manual and persevered with the installation process it get it working on the families home computer, a Gateway 2000 Pentium 90. After this I was hooked on Linux! I discovered Debian sometime in 2000 when Debian 2.2 Potato was the current stable release. For a few years I rattled around a number of other distributions: Red Hat, SuSE, LFS (Linux From Scratch), Sorcerer GNU/Linux, SuSE, Debian. I permanently switched to Debian as my main driver sometime in 2002. Debian is awesome and it's quite amazing to see the progress Linux has been made over the years.
 

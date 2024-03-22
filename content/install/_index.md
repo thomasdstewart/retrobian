@@ -1,6 +1,7 @@
 ---
 title: "Install"
 description: "Installation Notes and Instructions"
+featured_image: "/install/0.93-debian-login.png"
 ---
 ## Virtual Hardware
 This was all created using QEMU with default hardware. The machine type used was the default on Debian testing/sid as of 5th May 2020:
