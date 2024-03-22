@@ -6,11 +6,10 @@ variables:
 
 pages:
   script:
-  - apk add git
-  - git submodule sync themes/ananke
-  - git submodule update --init themes/ananke
-  - hugo mod graph
-  - hugo --logLevel debug --minify
+    - apk add go git
+    - hugo version
+    - hugo mod graph
+    - hugo --logLevel debug --minify
   artifacts:
     paths:
     - public

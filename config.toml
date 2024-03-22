@@ -1,7 +1,7 @@
 baseURL = "https://retrobian.org.uk/"
 title = "Retrobian"
 languageCode = "en-GB"
-theme = "ananke"
+theme = ["github.com/theNewDynamic/gohugo-theme-ananke"]
 
 SectionPagesMenu = "main"
 

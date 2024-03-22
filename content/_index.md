@@ -1,6 +1,7 @@
 ---
 title: "Retrobian"
 description: "Retro Debian Installations"
+featured_image: "/install/0.93-debian-login.png"
 ---
 Hi,
 
