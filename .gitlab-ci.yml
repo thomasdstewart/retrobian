@@ -1,24 +1,16 @@
 # All available Hugo versions are listed here: https://gitlab.com/pages/hugo/container_registry
-image: registry.gitlab.com/pages/hugo:latest
+image: registry.gitlab.com/pages/hugo_extended:latest
 
 variables:
   GIT_SUBMODULE_STRATEGY: none
-
-test:
-  script:
-  - apk add git
-  - git submodule sync themes/ananke
-  - git submodule update --init themes/ananke
-  - hugo
-  except:
-  - master
 
 pages:
   script:
   - apk add git
   - git submodule sync themes/ananke
   - git submodule update --init themes/ananke
-  - hugo
+  - hugo mod graph
+  - hugo --logLevel debug --minify
   artifacts:
     paths:
     - public
