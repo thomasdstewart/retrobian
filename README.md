@@ -1,2 +1,1 @@
-
-update fstab
+See: https://retrobian.org.uk/
