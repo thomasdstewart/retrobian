@@ -2,8 +2,7 @@
 mode=$1
 
 
-https://github.com/ralish/bash-script-template/blob/main/script.sh
-#swtich to 
+#swtich to https://github.com/ralish/bash-script-template/blob/main/script.sh
 
 if [ "$mode" == "clean" ]; then
         rm *.qcow2 *.img
