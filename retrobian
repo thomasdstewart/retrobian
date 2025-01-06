@@ -93,7 +93,7 @@ if [ "$mode" == "genrepo" ]; then
         sudo qemu-nbd -c /dev/nbd0 --cache=writeback retrobian-repo/$version-$release-repo.qcow2
         sudo parted /dev/nbd0 mklabel msdos
         sudo parted /dev/nbd0 mkpart pri 1 100%
-        sudo mkfs.ext2 -r 0 /dev/nbd0p1
+        sudo mkfs.ext2 -E revision=0 /dev/nbd0p1
         mkdir -p retrobian-repo/$version-$release-repo.qcow2.d
         sudo mount /dev/nbd0p1 retrobian-repo/$version-$release-repo.qcow2.d
         sudo rsync -a retrobian-repo/$version-$release-repo/. retrobian-repo/$version-$release-repo.qcow2.d/.
@@ -279,7 +279,7 @@ hd="$version-$release.qcow2"
 if [ ! -f $hd -a -f retrobian-img/$hd ]; then
         qemu-img create -f qcow2 -b retrobian-img/$hd $hd
 elif [ ! -f $hd ]; then
-        qemu-img create -f qcow2 -o backing_file="json:{\"file.driver\":\"http\",,\"file.timeout\":\"10\",,\"file.url\":\"http://img.retrobian.org.uk/retrobian-img/$hd\"}" $hd
+        qemu-img create -f qcow2 -F qcow2 -o backing_file="json:{\"file.driver\":\"http\",,\"file.timeout\":\"10\",,\"file.url\":\"http://img.retrobian.org.uk/$hd\"}" $hd
 fi
 opts="$opts --device ide-hd,drive=ide0-hd0,bus=ide.0,unit=0"
 opts="$opts --blockdev qcow2,node-name=ide0-hd0,file.driver=file,file.filename=$hd,cache-size=$(( 256*1024*1024 ))"
@@ -290,7 +290,7 @@ if [ ! -f retrobian-repo/$version-$release-repo.qcow2 ]; then
         sudo qemu-nbd -c /dev/nbd0 --cache=writeback retrobian-repo/$version-$release-repo.qcow2
         sudo parted /dev/nbd0 mklabel msdos
         sudo parted /dev/nbd0 mkpart pri 1 100%
-        sudo mkfs.ext2 -r 0 /dev/nbd0p1
+        sudo mkfs.ext2 -E revision=0 /dev/nbd0p1
         sudo qemu-nbd -d /dev/nbd0
 
 fi
