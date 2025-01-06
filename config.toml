@@ -15,3 +15,6 @@ custom_css = ["custom.css"]
 name = "Thomas Stewart"
 email = "thomas@stewarts.org.uk"
 
+[module]
+[[module.imports]]
+path = "github.com/theNewDynamic/gohugo-theme-ananke/v2"
