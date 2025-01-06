@@ -49,5 +49,5 @@ module "cloudfront" {
 }
 
 output "cloudfront" {
-  value = "@ img.retrobian.org.uk ANAME ${module.cloudfront.cloudfront_distribution_domain_name}."
+  value = "@ img.retrobian.org.uk CNAME ${module.cloudfront.cloudfront_distribution_domain_name}."
 }
