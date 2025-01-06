@@ -1,6 +1,6 @@
 [submodule "retrobian-repo"]
 	path = retrobian-repo
-	url = https://git.stewarts.org.uk/thomasdstewart/retrobian-repo.git
+	url = ssh://gitea@gitea.stewarts.org.uk:222/thomasdstewart/retrobian-repo.git
 [submodule "retrobian-img"]
 	path = retrobian-img
-	url = https://img.retrobian.org.uk/gitweb/retrobian-img
+	url = ssh://gitea@gitea.stewarts.org.uk:222/thomasdstewart/retrobian-img.git
