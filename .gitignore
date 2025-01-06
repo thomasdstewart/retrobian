@@ -4,3 +4,7 @@ public/
 go.sum
 *fd*.img
 *.qcow2
+**/.terraform/*
+**/.terraform.lock.hcl
+**/.tfplan
+**/.output.json
