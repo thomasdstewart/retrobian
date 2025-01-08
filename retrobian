@@ -277,7 +277,7 @@ fi
 
 hd="$version-$release.qcow2"
 if [ ! -f $hd -a -f retrobian-img/$hd ]; then
-        qemu-img create -f qcow2 -b retrobian-img/$hd $hd
+        qemu-img create -f qcow2 -F qcow2 -b retrobian-img/$hd $hd
 elif [ ! -f $hd ]; then
         qemu-img create -f qcow2 -F qcow2 -o backing_file="json:{\"file.driver\":\"http\",,\"file.timeout\":\"10\",,\"file.url\":\"http://img.retrobian.org.uk/$hd\"}" $hd
 fi

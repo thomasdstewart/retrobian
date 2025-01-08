@@ -1,9 +1,12 @@
 baseURL = "https://retrobian.org.uk/"
 title = "Retrobian"
-languageCode = "en-GB"
 theme = ["github.com/theNewDynamic/gohugo-theme-ananke"]
-
+languageCode = "en-GB"
+enableRobotsTXT = true
 SectionPagesMenu = "main"
+
+[services.googleAnalytics]
+id = 'G-P1RPHR3VF2'
 
 [params]
 subtitle = "Retro Debian installations"
@@ -11,7 +14,7 @@ featured_image = "/install/0.93-debian-login.png"
 recent_posts_number = 10
 custom_css = ["custom.css"]
 
-[author]
+[[author]]
 name = "Thomas Stewart"
 email = "thomas@stewarts.org.uk"
 
