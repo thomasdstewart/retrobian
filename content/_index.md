@@ -3,7 +3,7 @@ title: "Retrobian"
 description: "Retro Debian Installations"
 featured_image: "/install/0.93-debian-login.png"
 ---
-Welcome, I'm Thomas Stewart (thomas@stewarts.org.uk) and I have an interest in older (Retro) Debian GNU/Linux distribution releases. This site allows anyone to see and try out older versions of Debian and documents how to do this. Below is the list of versions I have tried.
+This site documents how to use older versions of Debian providing installation information. It also shows how to use existing installations using disk images hosted online allowing anyone to easily try without having to install. Below is the list of versions available.
 
 | Debian Version                          | Code Name                                         | Release Date  | Repo Size | Linux Version | GCC Version |
 | ---                                     | ---                                               | ---           | ---       | ---           | ---         |
