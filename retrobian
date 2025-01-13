@@ -18,6 +18,7 @@ if [ "$mode" == "genallrepo" ]; then
         $0 genrepo 2.0
         $0 genrepo 2.1
         $0 genrepo 2.2
+        $0 genrepo 3.0
         exit
 fi
 
@@ -74,15 +75,35 @@ if [ "$mode" == "genrepo" ]; then
         if [ "$version" == "0.91" ]; then
                 lftp -e "mirror --delete --only-missing --verbose . retrobian-repo/$version-$release-repo; exit" \
                         http://www.ibiblio.org/pub/historic-linux/distributions/debian-0.91/
+        elif [ "$version" == "3.0" ]; then
+                debmirror --verbose --host=rsync.archive.debian.org --root=debian-archive/debian --method=rsync \
+                        --dist=woody --section=main,contrib,non-free --arch=i386 --no-check-gpg \
+                        retrobian-repo/$version-$release-repo/debian/. || true
+
+                mkdir -p retrobian-repo/$version-$release-repo/debian/dists/woody/main/disks-i386/.
+                rsync -av \
+                        rsync.archive.debian.org::debian-archive/debian/dists/$release/main/disks-i386/. \
+                        retrobian-repo/$version-$release-repo/debian/dists/woody/main/disks-i386/.
+
+                debmirror --verbose --host=rsync.archive.debian.org --root=debian-archive/debian-non-US --method=rsync \
+                        --dist=woody/non-US --section=main,contrib,non-free,main/disks --arch=i386 --no-check-gpg \
+                        retrobian-repo/$version-$release-repo/non-US/. || true
+
+                debmirror --verbose --host=rsync.archive.debian.org --root=debian-archive/debian-security --method=rsync \
+                        --dist=woody/updates --section=main,contrib,non-free,main/disks --arch=i386 --no-check-gpg \
+                        retrobian-repo/$version-$release-repo/debian-security/. || true
         else
                 rsync -av --delete \
-                        archive.debian.org::debian-archive/debian/dists/$releasedir/. \
+                        rsync.archive.debian.org::debian-archive/debian/dists/$releasedir/. \
                         retrobian-repo/$version-$release-repo/.
         fi
-        if [ "$version" == "2.1" -o "$version" == "2.2" -o "$version" == "3.0" ]; then
+        if [ "$version" == "2.1" -o "$version" == "2.2" ]; then
                 rsync -av \
-                        archive.debian.org::debian-archive/debian-non-US/dists/$release/. \
-                        retrobian-repo/$version-$release-repo/
+                        rsync.archive.debian.org::debian-archive/debian-non-US/dists/$release/. \
+                        retrobian-repo/$version-$release-repo/.
+                rsync -av \
+                        rsync.archive.debian.org::debian-archive/debian-security/dists/$release/. \
+                        retrobian-repo/$version-$release-repo/.
         fi
 
         reposize=$(du -skc retrobian-repo/$version-$release-repo files | tail -1 | awk '{print $1}')
@@ -120,7 +141,8 @@ if [ "$mode" == "genrepo" ]; then
                         retrobian-repo/$version-$release-repo.qcow2.d/
         fi
         if [ "$version" == "3.0" ]; then
-                echo todo
+                sudo cp retrobian-repo/$version-$release-repo/main/disks-i386/current/base2_2.tgz \
+                        retrobian-repo/$version-$release-repo.qcow2.d/
         fi
 
         cp -a files retrobian-repo/$version-$release-repo.qcow2.d/
@@ -194,7 +216,7 @@ if [ "$mode" == "build" -o "$mode" == "geninstaller" ]; then
                         $version-$release.fda.img
         fi
         if [ "$version" == "3.0" ]; then
-                cp retrobian-repo/$version-$release-repo/main/disks-i386/current/images-2.88/rescue.bin \
+                cp retrobian-repo/$version-$release-repo/debian/dists/woody/main/disks-i386/current/images-2.88/rescue.bin \
                         $version-$release.fda.img
         fi
 
