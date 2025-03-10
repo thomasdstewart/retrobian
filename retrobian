@@ -318,8 +318,8 @@ if [ ! -f retrobian-repo/$version-$release-repo.qcow2 ]; then
 fi
 opts="$opts --device ide-hd,drive=ide0-hd1,bus=ide.0,unit=1"
 opts="$opts --blockdev qcow2,node-name=ide0-hd1,file.driver=file,file.filename=retrobian-repo/$version-$release-repo.qcow2"
-
 opts="$opts --device ne2k_isa,netdev=net0"
+opts="$opts -monitor telnet:127.0.0.1:3333,server,nowait"
 
 net=bridge
 #net=user
@@ -334,4 +334,19 @@ fi
 
 opts="$opts --name Debian-$release-$version --enable-kvm --vga cirrus"
 
+(sleep 5; sudo rm /tmp/shot*; ./cap.sh) &
 sudo qemu-system-i386 $opts 
+
+exit
+
+for n in $(seq -w 1 60); do
+        i="/tmp/shot-00$n.ppm"
+        s=$(identify -ping -format '%wx%h' $i)
+        if [ "$s" == "720x400" ] ; then
+                magick $i -resize 142.22222% -background black -gravity South -splice 0x199 $i.mod
+        fi
+        if [ "$s" == "1024x768" ] ; then
+                cp $i $i.mod
+        fi
+done
+magick -loop 0 -delay 100 /tmp/shot-*.ppm.mod /tmp/shot.gif
