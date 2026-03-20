@@ -15,7 +15,7 @@ This site documents how to use older versions of Debian providing installation i
 | [2.0]({{<  relref "2.0-hamm.md" >}})    | [Hamm](https://www.debian.org/releases/hamm/)     | July 1998     | 2.0G      | 2.0.34        | 2.7.2.3     |
 | [2.1]({{<  relref "2.1-slink.md" >}})   | [Slink](https://www.debian.org/releases/slink/)   | March 1999    | 4.2G      | 2.0.38        | 2.7.2.3     |
 | [2.2]({{<  relref "2.2-potato.md" >}})  | [Potato](https://www.debian.org/releases/potato/) | August 2000   | 6.8G      | 2.2.19        | 2.95.2      |
-| [3.0]({{<  relref "3.0-woody.md" >}})   | [Woody](https://www.debian.org/releases/woody/)   | July 2002     | ?         |  ?            | ?           |
+| [3.0]({{<  relref "3.0-woody.md" >}})   | [Woody](https://www.debian.org/releases/woody/)   | July 2002     | 11G       | 2.2.20        | 2.95.4      |
 
 [Debian version history on Wikipedia](https://en.wikipedia.org/wiki/Debian_version_history)
 

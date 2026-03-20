@@ -1,6 +1,5 @@
 baseURL = "https://retrobian.org.uk/"
 title = "Retrobian"
-theme = ["github.com/theNewDynamic/gohugo-theme-ananke"]
 languageCode = "en-GB"
 enableRobotsTXT = true
 SectionPagesMenu = "main"
@@ -20,4 +19,5 @@ email = "thomas@stewarts.org.uk"
 
 [module]
 [[module.imports]]
+disable = false
 path = "github.com/theNewDynamic/gohugo-theme-ananke/v2"
