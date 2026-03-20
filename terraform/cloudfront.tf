@@ -1,6 +1,6 @@
 module "cloudfront" {
   source  = "terraform-aws-modules/cloudfront/aws"
-  version = "4.0.0"
+  version = "6.4.0"
 
   aliases = [
     "retrobian.org.uk",
