@@ -1,0 +1,32 @@
+---
+name: Sync repo
+
+on:
+  push:
+    branches: ["main"]
+    paths: ["**"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Sync
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+        
+      - name: Sync repos
+        id: sync-repos
+        run: |
+          eval $(ssh-agent -s)
+          echo '${{ secrets.SSH_PRIVATE_KEY }}' | base64 -d | ssh-add -
+          ssh-add -l
+          mkdir -p ~/.ssh
+          ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+          git remote add gitlab git@gitlab.com:thomasdstewart/tomsweb2.git
+          #git fetch gitlab main
+          #git merge --ff-only gitlab/main        
+          git push gitlab HEAD:main
