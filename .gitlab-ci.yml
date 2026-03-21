@@ -14,7 +14,7 @@ build:
     - echo -e "[default]\nrole_arn=${ROLE_ARN}\nweb_identity_token_file=/tmp/web_identity_token" > ~/.aws/config
 #    - git remote add github git@github.com:thomasdstewart/retrobian.git
 #    - git push github HEAD:main
-    - hugo_version="v0.158.0"
+    - hugo_version="0.158.0"
     - curl -L https://github.com/gohugoio/hugo/releases/download/v${hugo_version}/hugo_extended_withdeploy_${hugo_version}_linux-amd64.tar.gz | tar xvzf - -C /bin hugo
     - hugo --logLevel debug --minify
     - hugo --logLevel debug deploy --invalidateCDN --maxDeletes -1
