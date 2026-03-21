@@ -1,17 +1,25 @@
-# All available Hugo versions are listed here: https://gitlab.com/pages/hugo/container_registry
-image: registry.gitlab.com/pages/hugo/hugo_extended:latest
-
-variables:
-  GIT_SUBMODULE_STRATEGY: none
-
-pages:
+build:
+  stage: build
+  image: docker.io/alpine:latest
+  id_tokens:
+    AWS_OIDC_TOKEN:
+      aud: sts.amazonaws.com
   script:
-    - apk add go git
-    - hugo version
-    - hugo mod graph
+    - apk add --no-cache curl go git libc6-compat openssh
+    - mkdir -p ~/.aws ~/.ssh 
+#    - eval $(ssh-agent -s)
+#    - echo "$SSH_PRIVATE_KEY" | base64 -d | ssh-add -
+#    - ssh-keyscan github.com >> ~/.ssh/known_hosts
+    - echo "${AWS_OIDC_TOKEN}" > /tmp/web_identity_token
+    - echo -e "[default]\nrole_arn=${ROLE_ARN}\nweb_identity_token_file=/tmp/web_identity_token" > ~/.aws/config
+#    - git remote add github git@github.com:thomasdstewart/retrobian.git
+#    - git push github HEAD:main
+    - hugo_version="v0.158.0"
+    - curl -L https://github.com/gohugoio/hugo/releases/download/v${hugo_version}/hugo_extended_withdeploy_${hugo_version}_linux-amd64.tar.gz | tar xvzf - -C /bin hugo
     - hugo --logLevel debug --minify
-  artifacts:
+    - hugo --logLevel debug deploy --invalidateCDN --maxDeletes -1
+  cache:
+    key: resources
     paths:
-    - public
-  only:
-  - main
+      - resources
+

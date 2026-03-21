@@ -1,12 +1,12 @@
-module "cloudfront" {
+module "cloudfront_img" {
   source  = "terraform-aws-modules/cloudfront/aws"
   version = "6.4.0"
 
   aliases = [
-    "retrobian.org.uk"
+    "img.retrobian.org.uk"
   ]
 
-  comment               = "retrobian.org.uk"
+  comment               = "img.retrobian.org.uk"
   enabled               = true
   is_ipv6_enabled       = true
   price_class           = "PriceClass_All"
@@ -15,7 +15,7 @@ module "cloudfront" {
   origin_access_control = {}
 
   origin = {
-    "retrobian-ouquejei" = {
+    "retrobian-eewavito" = {
       domain_name = module.s3_bucket.s3_bucket_bucket_domain_name
       custom_origin_config = {
         http_port              = 80
@@ -28,7 +28,7 @@ module "cloudfront" {
   }
 
   default_cache_behavior = {
-    target_origin_id       = "retrobian-ouquejei"
+    target_origin_id       = "retrobian-eewavito"
     viewer_protocol_policy = "allow-all"
 
     allowed_methods = ["GET", "HEAD"]

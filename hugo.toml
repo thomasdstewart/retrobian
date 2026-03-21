@@ -21,3 +21,9 @@ email = "thomas@stewarts.org.uk"
 [[module.imports]]
 disable = false
 path = "github.com/theNewDynamic/gohugo-theme-ananke/v2"
+
+[deployment]
+  [[deployment.targets]]
+    name = 'production'
+    url = 's3://retrobian-ouquejei?region=eu-west-2'
+    cloudFrontDistributionID = 'E'
