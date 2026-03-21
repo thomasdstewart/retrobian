@@ -26,4 +26,4 @@ path = "github.com/theNewDynamic/gohugo-theme-ananke/v2"
   [[deployment.targets]]
     name = 'production'
     url = 's3://retrobian-ouquejei?region=eu-west-2'
-    cloudFrontDistributionID = 'E'
+    cloudFrontDistributionID = 'E297HENSYJGZ63'
