@@ -51,7 +51,11 @@ data "aws_iam_policy_document" "devops" {
     ]
     resources = [
       "${module.s3_bucket.s3_bucket_arn}",
-      "${module.s3_bucket.s3_bucket_arn}/*"
+      "${module.s3_bucket.s3_bucket_arn}/*",
+      "${module.s3_bucket_img.s3_bucket_arn}",
+      "${module.s3_bucket_img.s3_bucket_arn}/*",
+      "${module.s3_bucket_repo.s3_bucket_arn}",
+      "${module.s3_bucket_repo.s3_bucket_arn}/*"
     ]
   }
   statement {
@@ -60,7 +64,9 @@ data "aws_iam_policy_document" "devops" {
       "cloudfront:CreateInvalidation"
     ]
     resources = [
-      "${module.cloudfront.cloudfront_distribution_arn}"
+      "${module.cloudfront.cloudfront_distribution_arn}",
+      "${module.cloudfront_img.cloudfront_distribution_arn}",
+      "${module.cloudfront_repo.cloudfront_distribution_arn}"
     ]
   }
 }
