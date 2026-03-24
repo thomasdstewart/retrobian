@@ -1,352 +1,409 @@
-#!/bin/bash -eux
-mode=$1
+#!/usr/bin/env python3
+"""Retrobian helper script.
+
+This is a Python rewrite of the original shell script with logic split
+into focused functions for each mode.
+"""
+
+from __future__ import annotations
+
+import shutil
+import subprocess
+import sys
+import time
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Sequence
 
 
-#swtich to https://github.com/ralish/bash-script-template/blob/main/script.sh
+@dataclass(frozen=True)
+class ReleaseInfo:
+    version: str
+    release: str
+    releasedir: str
 
-if [ "$mode" == "clean" ]; then
-        rm *.qcow2 *.img
-        exit
-fi
 
-if [ "$mode" == "genallrepo" ]; then
-        $0 genrepo 0.91
-        $0 genrepo 0.93
-        $0 genrepo 1.1
-        $0 genrepo 1.2
-        $0 genrepo 1.3
-        $0 genrepo 2.0
-        $0 genrepo 2.1
-        $0 genrepo 2.2
-        $0 genrepo 3.0
-        exit
-fi
+RELEASES: dict[str, ReleaseInfo] = {
+    "0.91": ReleaseInfo("0.91", "debian", "debian-0.91"),
+    "0.93": ReleaseInfo("0.93", "debian", "Debian-0.93R6"),
+    "1.1": ReleaseInfo("1.1", "buzz", "buzz"),
+    "1.2": ReleaseInfo("1.2", "rex", "rex"),
+    "1.3": ReleaseInfo("1.3", "bo", "bo"),
+    "2.0": ReleaseInfo("2.0", "hamm", "hamm"),
+    "2.1": ReleaseInfo("2.1", "slink", "slink"),
+    "2.2": ReleaseInfo("2.2", "potato", "potato"),
+    "3.0": ReleaseInfo("3.0", "woody", "woody"),
+}
 
-version=$2
-shift
-shift
-opts="$@"
+ALL_REPO_VERSIONS = ["0.91", "0.93", "1.1", "1.2", "1.3", "2.0", "2.1", "2.2", "3.0"]
 
-case $version in
-"0.91")
-        release="debian"
-        releasedir="debian-0.91"
-        ;;
-"0.93")
-        release="debian"
-        releasedir="Debian-0.93R6"
-        ;;
-"1.1")
-        release="buzz"
-        releasedir="$release"
-        opts="$opts --device isa-serial,chardev=serial0 --chardev msmouse,id=serial0"
-        ;;
-"1.2")
-        release="rex"
-        releasedir="$release"
-        ;;
-"1.3")
-        release="bo"
-        releasedir="$release"
-        ;;
-"2.0")
-        release="hamm"
-        releasedir="$release"
-        ;;
-"2.1")
-        release="slink"
-        releasedir="$release"
-        ;;
-"2.2")
-        release="potato"
-        releasedir="$release"
-        ;;
-"3.0")
-        release="woody"
-        releasedir="$release"
-        ;;
-*)
-        exit
-        ;;
-esac
 
-if [ "$mode" == "genrepo" ]; then
-        mkdir -p retrobian-repo/$version-$release-repo
-        if [ "$version" == "0.91" ]; then
-                lftp -e "mirror --delete --only-missing --verbose . retrobian-repo/$version-$release-repo; exit" \
-                        http://www.ibiblio.org/pub/historic-linux/distributions/debian-0.91/
-        elif [ "$version" == "3.0" ]; then
-                debmirror --verbose --host=rsync.archive.debian.org --root=debian-archive/debian --method=rsync \
-                        --dist=woody --section=main,contrib,non-free --arch=i386 --no-check-gpg \
-                        retrobian-repo/$version-$release-repo/debian/. || true
+def run(cmd: Sequence[str], *, check: bool = True, shell: bool = False) -> subprocess.CompletedProcess:
+    print("+", " ".join(cmd) if not shell else cmd)
+    return subprocess.run(cmd if not shell else " ".join(cmd), check=check, shell=shell)
 
-                mkdir -p retrobian-repo/$version-$release-repo/debian/dists/woody/main/disks-i386/.
-                rsync -av \
-                        rsync.archive.debian.org::debian-archive/debian/dists/$release/main/disks-i386/. \
-                        retrobian-repo/$version-$release-repo/debian/dists/woody/main/disks-i386/.
 
-                debmirror --verbose --host=rsync.archive.debian.org --root=debian-archive/debian-non-US --method=rsync \
-                        --dist=woody/non-US --section=main,contrib,non-free,main/disks --arch=i386 --no-check-gpg \
-                        retrobian-repo/$version-$release-repo/non-US/. || true
+def sh(command: str, *, check: bool = True) -> subprocess.CompletedProcess:
+    print(f"+ {command}")
+    return subprocess.run(command, shell=True, check=check)
 
-                debmirror --verbose --host=rsync.archive.debian.org --root=debian-archive/debian-security --method=rsync \
-                        --dist=woody/updates --section=main,contrib,non-free,main/disks --arch=i386 --no-check-gpg \
-                        retrobian-repo/$version-$release-repo/debian-security/. || true
-        else
-                rsync -av --delete \
-                        rsync.archive.debian.org::debian-archive/debian/dists/$releasedir/. \
-                        retrobian-repo/$version-$release-repo/.
-        fi
-        if [ "$version" == "2.1" -o "$version" == "2.2" ]; then
-                rsync -av \
-                        rsync.archive.debian.org::debian-archive/debian-non-US/dists/$release/. \
-                        retrobian-repo/$version-$release-repo/.
-                rsync -av \
-                        rsync.archive.debian.org::debian-archive/debian-security/dists/$release/. \
-                        retrobian-repo/$version-$release-repo/.
-        fi
 
-        reposize=$(du -skc retrobian-repo/$version-$release-repo files | tail -1 | awk '{print $1}')
-        reposize=$(echo "($reposize * 1.2) / 1024" | bc -l | awk -F. '{print $1}')
+def rm_glob(pattern: str) -> None:
+    for item in Path(".").glob(pattern):
+        if item.is_dir():
+            shutil.rmtree(item, ignore_errors=True)
+        else:
+            item.unlink(missing_ok=True)
 
-        qemu-img create -f qcow2 retrobian-repo/$version-$release-repo.qcow2 ${reposize}M
-        sudo modprobe nbd max_part=63
-        sudo qemu-nbd -c /dev/nbd0 --cache=writeback retrobian-repo/$version-$release-repo.qcow2
-        sudo parted /dev/nbd0 mklabel msdos
-        sudo parted /dev/nbd0 mkpart pri 1 100%
-        sudo mkfs.ext2 -E revision=0 /dev/nbd0p1
-        mkdir -p retrobian-repo/$version-$release-repo.qcow2.d
-        sudo mount /dev/nbd0p1 retrobian-repo/$version-$release-repo.qcow2.d
-        sudo rsync -a retrobian-repo/$version-$release-repo/. retrobian-repo/$version-$release-repo.qcow2.d/.
 
-        if [ "$version" == "1.1" ]; then
-                (cd retrobian-repo/$version-$release-repo.qcow2.d; ln -s main stable)
-                (cd retrobian-repo/$version-$release-repo.qcow2.d/main; ln -s binary-i386 binary)
-                (cd retrobian-repo/$version-$release-repo.qcow2.d/contrib; ln -s binary binary-i386)
+def release_for(version: str) -> ReleaseInfo:
+    if version not in RELEASES:
+        raise SystemExit(1)
+    return RELEASES[version]
 
-                sudo cp retrobian-repo/$version-$release-repo/main/disks-i386/1996_6_16/base1_1.tgz \
-                        retrobian-repo/$version-$release-repo.qcow2.d/
-        fi
-        if [ "$version" == "1.2" ]; then
-                (cd retrobian-repo/$version-$release-repo.qcow2.d; ln -s main stable)
 
-                sudo cp retrobian-repo/$version-$release-repo/main/disks-i386/current/base1_2.tgz \
-                        retrobian-repo/$version-$release-repo.qcow2.d/
-        fi
-        if [ "$version" == "1.3" ]; then
-                (cd retrobian-repo/$version-$release-repo.qcow2.d; ln -s main stable)
-        fi
-        if [ "$version" == "2.2" ]; then
-                sudo cp retrobian-repo/$version-$release-repo/main/disks-i386/current/base2_2.tgz \
-                        retrobian-repo/$version-$release-repo.qcow2.d/
-        fi
-        if [ "$version" == "3.0" ]; then
-                sudo cp retrobian-repo/$version-$release-repo/main/disks-i386/current/base2_2.tgz \
-                        retrobian-repo/$version-$release-repo.qcow2.d/
-        fi
+def genrepo(info: ReleaseInfo) -> None:
+    version = info.version
+    release = info.release
+    releasedir = info.releasedir
+    repo_dir = Path(f"retrobian-repo/{version}-{release}-repo")
+    repo_dir.mkdir(parents=True, exist_ok=True)
 
-        cp -a files retrobian-repo/$version-$release-repo.qcow2.d/
-        df -h retrobian-repo/$version-$release-repo.qcow2.d
-        sudo umount retrobian-repo/$version-$release-repo.qcow2.d
-        rmdir retrobian-repo/$version-$release-repo.qcow2.d
-        sudo qemu-nbd -d /dev/nbd0
-        qemu-img convert -p -c -O qcow2 retrobian-repo/$version-$release-repo.qcow2 \
-                retrobian-repo/$version-$release-repo.qcow2.new
-        mv      retrobian-repo/$version-$release-repo.qcow2.new \
-                retrobian-repo/$version-$release-repo.qcow2
-        exit
-fi
+    if version == "0.91":
+        sh(
+            f'lftp -e "mirror --delete --only-missing --verbose . {repo_dir}; exit" '
+            "http://www.ibiblio.org/pub/historic-linux/distributions/debian-0.91/"
+        )
+    elif version == "3.0":
+        sh(
+            "debmirror --verbose --host=rsync.archive.debian.org --root=debian-archive/debian --method=rsync "
+            "--dist=woody --section=main,contrib,non-free --arch=i386 --no-check-gpg "
+            f"{repo_dir}/debian/. || true"
+        )
+        Path(f"{repo_dir}/debian/dists/woody/main/disks-i386").mkdir(parents=True, exist_ok=True)
+        sh(
+            f"rsync -av rsync.archive.debian.org::debian-archive/debian/dists/{release}/main/disks-i386/. "
+            f"{repo_dir}/debian/dists/woody/main/disks-i386/."
+        )
+        sh(
+            "debmirror --verbose --host=rsync.archive.debian.org --root=debian-archive/debian-non-US --method=rsync "
+            "--dist=woody/non-US --section=main,contrib,non-free,main/disks --arch=i386 --no-check-gpg "
+            f"{repo_dir}/non-US/. || true"
+        )
+        sh(
+            "debmirror --verbose --host=rsync.archive.debian.org --root=debian-archive/debian-security --method=rsync "
+            "--dist=woody/updates --section=main,contrib,non-free,main/disks --arch=i386 --no-check-gpg "
+            f"{repo_dir}/debian-security/. || true"
+        )
+    else:
+        sh(
+            "rsync -av --delete "
+            f"rsync.archive.debian.org::debian-archive/debian/dists/{releasedir}/. "
+            f"{repo_dir}/."
+        )
 
-if [ "$mode" == "build" ]; then
-        rm -f   $version-$release.fda.img \
-                $version-$release.fdb.img \
-                $version-$release.qcow2 \
-                retrobian-repo/$version-$release-repo.qcow2 \
-                retrobian-img/$version-$release.qcow2
-        $0 genrepo $version
+    if version in {"2.1", "2.2"}:
+        sh(
+            "rsync -av "
+            f"rsync.archive.debian.org::debian-archive/debian-non-US/dists/{release}/. "
+            f"{repo_dir}/."
+        )
+        sh(
+            "rsync -av "
+            f"rsync.archive.debian.org::debian-archive/debian-security/dists/{release}/. "
+            f"{repo_dir}/."
+        )
 
-        if [ "$version" == "0.91" ]; then
-                qemu-img create -f qcow2 retrobian-img/$version-$release.qcow2 200M
-        else
-                qemu-img create -f qcow2 retrobian-img/$version-$release.qcow2 1G
-        fi
-fi
+    # Size in MB with 20% headroom.
+    reposize_raw = subprocess.check_output(
+        f"du -skc {repo_dir} files | tail -1 | awk '{{print $1}}'", shell=True, text=True
+    ).strip()
+    reposize = subprocess.check_output(
+        f"echo '({reposize_raw} * 1.2) / 1024' | bc -l | awk -F. '{{print $1}}'",
+        shell=True,
+        text=True,
+    ).strip()
 
-if [ "$mode" == "build" -o "$mode" == "geninstaller" ]; then
-        if [ "$version" == "0.91" ]; then
-                zcat retrobian-repo/$version-$release-repo/debian-0.91/dist/base/bootdisk.gz \
-                        > $version-$release.fda.img
-                zcat retrobian-repo/$version-$release-repo/debian-0.91/dist/base/basedsk1.gz \
-                        > $version-$release.fdb.img
-        fi
+    qcow = Path(f"retrobian-repo/{version}-{release}-repo.qcow2")
+    mount_dir = Path(f"retrobian-repo/{version}-{release}-repo.qcow2.d")
 
-        if [ "$version" == "0.93" ]; then
-                zcat retrobian-repo/$version-$release-repo/disks/1440_boot_floppy.gz \
-                        > $version-$release.fda.img
-                zcat retrobian-repo/$version-$release-repo/disks/1440_root_floppy.gz \
-                        > $version-$release.fdb.img
-        fi
+    run(["qemu-img", "create", "-f", "qcow2", str(qcow), f"{reposize}M"])
+    run(["sudo", "modprobe", "nbd", "max_part=63"])
+    run(["sudo", "qemu-nbd", "-c", "/dev/nbd0", "--cache=writeback", str(qcow)])
+    run(["sudo", "parted", "/dev/nbd0", "mklabel", "msdos"])
+    run(["sudo", "parted", "/dev/nbd0", "mkpart", "pri", "1", "100%"])
+    run(["sudo", "mkfs.ext2", "-E", "revision=0", "/dev/nbd0p1"])
 
-        if [ "$version" == "1.1" ]; then
-                cp retrobian-repo/$version-$release-repo/main/disks-i386/1996_6_16/boot1440.bin \
-                        $version-$release.fda.img
-                cp retrobian-repo/$version-$release-repo/main/disks-i386/1996_6_16/root.bin \
-                        $version-$release.fdb.img
-        fi
-        if [ "$version" == "1.2" ]; then
-                cp retrobian-repo/$version-$release-repo/main/disks-i386/current/resq1440.bin \
-                        $version-$release.fda.img
-                cp retrobian-repo/$version-$release-repo/main/disks-i386/current/drv1440.bin \
-                        $version-$release.fdb.img
-        fi
-        if [ "$version" == "1.3" ]; then
-                cp retrobian-repo/$version-$release-repo/main/disks-i386/current/resc1440.bin \
-                        $version-$release.fda.img
-        fi
-        if [ "$version" == "2.0" ]; then
-                cp retrobian-repo/$version-$release-repo/main/disks-i386/current/resc1440.bin \
-                        $version-$release.fda.img
-        fi
-        if [ "$version" == "2.1" ]; then
-                cp retrobian-repo/$version-$release-repo/main/disks-i386/current/resc1440.bin \
-                        $version-$release.fda.img
-        fi
-        if [ "$version" == "2.2" ]; then
-                cp retrobian-repo/$version-$release-repo/main/disks-i386/current/images-2.88/rescue.bin \
-                        $version-$release.fda.img
-        fi
-        if [ "$version" == "3.0" ]; then
-                cp retrobian-repo/$version-$release-repo/debian/dists/woody/main/disks-i386/current/images-2.88/rescue.bin \
-                        $version-$release.fda.img
-        fi
+    mount_dir.mkdir(parents=True, exist_ok=True)
+    run(["sudo", "mount", "/dev/nbd0p1", str(mount_dir)])
+    run(["sudo", "rsync", "-a", f"{repo_dir}/.", f"{mount_dir}/."])
 
-        if [ "$mode" == "geninstaller" ]; then
-                sudo rm -r -f retrobian-installers/$version-$release.fd*
-                mkdir -p retrobian-installers/$version-$release.fda.img.d
-                sudo mount -o loop $version-$release.fda.img retrobian-installers/$version-$release.fda.img.d
-                sudo cp -a retrobian-installers/$version-$release.fda.img.d retrobian-installers/$version-$release.fda.img
-                sleep 1
-                sudo umount retrobian-installers/$version-$release.fda.img.d
-                rmdir retrobian-installers/$version-$release.fda.img.d
+    if version == "1.1":
+        (mount_dir / "stable").symlink_to("main")
+        (mount_dir / "main" / "binary").symlink_to("binary-i386")
+        (mount_dir / "contrib" / "binary-i386").symlink_to("binary")
+        run(["sudo", "cp", f"{repo_dir}/main/disks-i386/1996_6_16/base1_1.tgz", str(mount_dir)])
+    if version == "1.2":
+        (mount_dir / "stable").symlink_to("main")
+        run(["sudo", "cp", f"{repo_dir}/main/disks-i386/current/base1_2.tgz", str(mount_dir)])
+    if version == "1.3":
+        (mount_dir / "stable").symlink_to("main")
+    if version == "2.2":
+        run(["sudo", "cp", f"{repo_dir}/main/disks-i386/current/base2_2.tgz", str(mount_dir)])
+    if version == "3.0":
+        run(["sudo", "cp", f"{repo_dir}/main/disks-i386/current/base2_2.tgz", str(mount_dir)])
 
-                if [ -f retrobian-installers/$version-$release.fda.img/ROOT.BIN ]; then
-                        cat retrobian-installers/$version-$release.fda.img/ROOT.BIN | gunzip | sudo tee retrobian-installers/$version-$release.fda.img/ROOT.BIN.ungzip > /dev/null
-                        sudo mkdir retrobian-installers/$version-$release.fda.img/ROOT.BIN.d
-                        sudo mount -o loop retrobian-installers/$version-$release.fda.img/ROOT.BIN.ungzip retrobian-installers/$version-$release.fda.img/ROOT.BIN.d
-                        sudo cp -a retrobian-installers/$version-$release.fda.img/ROOT.BIN.d retrobian-installers/$version-$release.fda.img/ROOT.BIN.EXTRACTED
-                        sleep 1
-                        sudo umount retrobian-installers/$version-$release.fda.img/ROOT.BIN.d
-                        sudo rmdir retrobian-installers/$version-$release.fda.img/ROOT.BIN.d
-                fi
+    run(["cp", "-a", "files", str(mount_dir)])
+    run(["df", "-h", str(mount_dir)])
+    run(["sudo", "umount", str(mount_dir)])
+    mount_dir.rmdir()
+    run(["sudo", "qemu-nbd", "-d", "/dev/nbd0"])
+    run(["qemu-img", "convert", "-p", "-c", "-O", "qcow2", str(qcow), f"{qcow}.new"])
+    Path(f"{qcow}.new").replace(qcow)
 
-                if [ -f $version-$release.fdb.img ]; then
-                        if [ "$version" == "0.91" ]; then
-                                mkdir -p retrobian-installers/$version-$release.fdb.img
-                                cat $version-$release.fdb.img | gunzip | sudo cpio -idD retrobian-installers/$version-$release.fdb.img
-                        fi
-                        if [ "$version" == "1.1" ]; then
-                                cat $version-$release.fdb.img | gunzip > $version-$release.fdb.img.ungzip
-                                mv $version-$release.fdb.img.ungzip $version-$release.fdb.img
-                        fi
-                        if [ "$version" == "0.93" -o "$version" == "1.1" -o "$version" == "1.2" ]; then
-                                mkdir -p retrobian-installers/$version-$release.fdb.img.d
-                                sudo mount -o loop $version-$release.fdb.img retrobian-installers/$version-$release.fdb.img.d
-                                sudo cp -a retrobian-installers/$version-$release.fdb.img.d retrobian-installers/$version-$release.fdb.img
-                                sleep 1
-                                sudo umount retrobian-installers/$version-$release.fdb.img.d
-                                rmdir retrobian-installers/$version-$release.fdb.img.d
-                        fi
-                fi
 
-                exit
-        fi
+def build_or_geninstaller_images(info: ReleaseInfo, mode: str) -> tuple[Path, Path | None]:
+    version, release = info.version, info.release
+    repo_dir = Path(f"retrobian-repo/{version}-{release}-repo")
+    fda = Path(f"{version}-{release}.fda.img")
+    fdb = Path(f"{version}-{release}.fdb.img")
 
-        opts="$opts --boot a"
-        opts="$opts --device floppy,drive=floppy0,unit=0"
-        opts="$opts --blockdev driver=file,node-name=floppy0,filename=$version-$release.fda.img"
-        if [ -f $version-$release.fdb.img ]; then
-                opts="$opts --device floppy,drive=floppy1,unit=1"
-                opts="$opts --blockdev driver=file,node-name=floppy1,filename=$version-$release.fdb.img"
-        fi
-fi
+    if version == "0.91":
+        sh(f"zcat {repo_dir}/debian-0.91/dist/base/bootdisk.gz > {fda}")
+        sh(f"zcat {repo_dir}/debian-0.91/dist/base/basedsk1.gz > {fdb}")
+    if version == "0.93":
+        sh(f"zcat {repo_dir}/disks/1440_boot_floppy.gz > {fda}")
+        sh(f"zcat {repo_dir}/disks/1440_root_floppy.gz > {fdb}")
+    if version == "1.1":
+        run(["cp", f"{repo_dir}/main/disks-i386/1996_6_16/boot1440.bin", str(fda)])
+        run(["cp", f"{repo_dir}/main/disks-i386/1996_6_16/root.bin", str(fdb)])
+    if version == "1.2":
+        run(["cp", f"{repo_dir}/main/disks-i386/current/resq1440.bin", str(fda)])
+        run(["cp", f"{repo_dir}/main/disks-i386/current/drv1440.bin", str(fdb)])
+    if version in {"1.3", "2.0", "2.1"}:
+        run(["cp", f"{repo_dir}/main/disks-i386/current/resc1440.bin", str(fda)])
+    if version == "2.2":
+        run(["cp", f"{repo_dir}/main/disks-i386/current/images-2.88/rescue.bin", str(fda)])
+    if version == "3.0":
+        run(["cp", f"{repo_dir}/debian/dists/woody/main/disks-i386/current/images-2.88/rescue.bin", str(fda)])
 
-if [ "$mode" == "deflate" ]; then
-        sudo modprobe nbd max_part=63
-        sudo qemu-nbd -c /dev/nbd0 --cache=writeback retrobian-img/$version-$release.qcow2
-        mkdir -p $version-$release.qcow2.d
-        sudo mount -t ext2 /dev/nbd0p1 $version-$release.qcow2.d
-        sudo dd if=/dev/zero of=$version-$release.qcow2.d/zzz bs=1M || true
-        sudo rm -f $version-$release.qcow2.d/zzz
-        sleep 2
-        sudo umount $version-$release.qcow2.d
-        rmdir $version-$release.qcow2.d
-        sudo qemu-nbd -d /dev/nbd0
-        qemu-img convert -p -c -O qcow2 retrobian-img/$version-$release.qcow2 \
-                retrobian-img/$version-$release.qcow2.new
-        mv retrobian-img/$version-$release.qcow2.new retrobian-img/$version-$release.qcow2
-        exit
-fi
+    if mode == "geninstaller":
+        geninstaller_extracts(info, fda, fdb)
 
-if [ "$mode" == "fdisk" ]; then
-        sudo modprobe nbd max_part=63
-        sudo qemu-nbd -c /dev/nbd0 --cache=writeback retrobian-img/$version-$release.qcow2
-        sudo sfdisk -d /dev/nbd0
-        #sudo fdisk -l /dev/nbd0
-        #sudo fdisk -l -u=cylinders /dev/nbd0
-        sudo qemu-nbd -d /dev/nbd0
-        exit
-fi
+    return fda, (fdb if fdb.exists() else None)
 
-hd="$version-$release.qcow2"
-if [ ! -f $hd -a -f retrobian-img/$hd ]; then
-        qemu-img create -f qcow2 -F qcow2 -b retrobian-img/$hd $hd
-elif [ ! -f $hd ]; then
-        qemu-img create -f qcow2 -F qcow2 -o backing_file="json:{\"file.driver\":\"http\",,\"file.timeout\":\"10\",,\"file.url\":\"http://img.retrobian.org.uk/$hd\"}" $hd
-fi
-opts="$opts --device ide-hd,drive=ide0-hd0,bus=ide.0,unit=0"
-opts="$opts --blockdev qcow2,node-name=ide0-hd0,file.driver=file,file.filename=$hd,cache-size=$(( 256*1024*1024 ))"
 
-if [ ! -f retrobian-repo/$version-$release-repo.qcow2 ]; then
-        qemu-img create -f qcow2 retrobian-repo/$version-$release-repo.qcow2 200M
-        sudo modprobe nbd max_part=63
-        sudo qemu-nbd -c /dev/nbd0 --cache=writeback retrobian-repo/$version-$release-repo.qcow2
-        sudo parted /dev/nbd0 mklabel msdos
-        sudo parted /dev/nbd0 mkpart pri 1 100%
-        sudo mkfs.ext2 -E revision=0 /dev/nbd0p1
-        sudo qemu-nbd -d /dev/nbd0
+def geninstaller_extracts(info: ReleaseInfo, fda: Path, fdb: Path) -> None:
+    version, release = info.version, info.release
+    install_dir = Path(f"retrobian-installers/{version}-{release}")
+    sh(f"sudo rm -r -f {install_dir}.fd*")
 
-fi
-opts="$opts --device ide-hd,drive=ide0-hd1,bus=ide.0,unit=1"
-opts="$opts --blockdev qcow2,node-name=ide0-hd1,file.driver=file,file.filename=retrobian-repo/$version-$release-repo.qcow2"
-opts="$opts --device ne2k_isa,netdev=net0"
-opts="$opts -monitor telnet:127.0.0.1:3333,server,nowait"
+    mount_a = Path(f"{install_dir}.fda.img.d")
+    mount_a.mkdir(parents=True, exist_ok=True)
+    run(["sudo", "mount", "-o", "loop", str(fda), str(mount_a)])
+    run(["sudo", "cp", "-a", str(mount_a), f"{install_dir}.fda.img"])
+    time.sleep(1)
+    run(["sudo", "umount", str(mount_a)])
+    mount_a.rmdir()
 
-net=bridge
-#net=user
+    root_bin = Path(f"{install_dir}.fda.img/ROOT.BIN")
+    if root_bin.exists():
+        sh(f"cat {root_bin} | gunzip | sudo tee {root_bin}.ungzip > /dev/null")
+        root_mnt = Path(f"{root_bin}.d")
+        run(["sudo", "mkdir", str(root_mnt)])
+        run(["sudo", "mount", "-o", "loop", f"{root_bin}.ungzip", str(root_mnt)])
+        run(["sudo", "cp", "-a", str(root_mnt), f"{install_dir}.fda.img/ROOT.BIN.EXTRACTED"])
+        time.sleep(1)
+        run(["sudo", "umount", str(root_mnt)])
+        run(["sudo", "rmdir", str(root_mnt)])
 
-if [ "$net" == "bridge" ]; then
-        opts="$opts --netdev tap,id=net0,ifname=retrobian0,script=no,downscript=no"
-        (sleep 10; sudo ip link set retrobian0 up; sudo ip link set retrobian0 master virbr0) &
-fi
-if [ "$net" == "user" ]; then
-        opts="$opts --netdev user,id=net0,net=192.168.122.0/24,host=192.168.122.1,dns=192.168.122.2,hostfwd=tcp::2323-192.168.122.10:23"
-fi
+    if not fdb.exists():
+        return
 
-opts="$opts --name Debian-$release-$version --enable-kvm --vga cirrus"
+    if version == "0.91":
+        target = Path(f"{install_dir}.fdb.img")
+        target.mkdir(parents=True, exist_ok=True)
+        sh(f"cat {fdb} | gunzip | sudo cpio -idD {target}")
+    if version == "1.1":
+        sh(f"cat {fdb} | gunzip > {fdb}.ungzip")
+        Path(f"{fdb}.ungzip").replace(fdb)
 
-(sleep 5; sudo rm /tmp/shot*; ./cap.sh) &
-sudo qemu-system-i386 $opts 
+    if version in {"0.93", "1.1", "1.2"}:
+        mount_b = Path(f"{install_dir}.fdb.img.d")
+        mount_b.mkdir(parents=True, exist_ok=True)
+        run(["sudo", "mount", "-o", "loop", str(fdb), str(mount_b)])
+        run(["sudo", "cp", "-a", str(mount_b), f"{install_dir}.fdb.img"])
+        time.sleep(1)
+        run(["sudo", "umount", str(mount_b)])
+        mount_b.rmdir()
 
-exit
 
-for n in $(seq -w 1 60); do
-        i="/tmp/shot-00$n.ppm"
-        s=$(identify -ping -format '%wx%h' $i)
-        if [ "$s" == "720x400" ] ; then
-                magick $i -resize 142.22222% -background black -gravity South -splice 0x199 $i.mod
-        fi
-        if [ "$s" == "1024x768" ] ; then
-                cp $i $i.mod
-        fi
-done
-magick -loop 0 -delay 100 /tmp/shot-*.ppm.mod /tmp/shot.gif
+def deflate(info: ReleaseInfo) -> None:
+    version, release = info.version, info.release
+    qcow = Path(f"retrobian-img/{version}-{release}.qcow2")
+    mount_dir = Path(f"{version}-{release}.qcow2.d")
+
+    run(["sudo", "modprobe", "nbd", "max_part=63"])
+    run(["sudo", "qemu-nbd", "-c", "/dev/nbd0", "--cache=writeback", str(qcow)])
+    mount_dir.mkdir(parents=True, exist_ok=True)
+    run(["sudo", "mount", "-t", "ext2", "/dev/nbd0p1", str(mount_dir)])
+    sh(f"sudo dd if=/dev/zero of={mount_dir}/zzz bs=1M || true")
+    run(["sudo", "rm", "-f", f"{mount_dir}/zzz"])
+    time.sleep(2)
+    run(["sudo", "umount", str(mount_dir)])
+    mount_dir.rmdir()
+    run(["sudo", "qemu-nbd", "-d", "/dev/nbd0"])
+    run(["qemu-img", "convert", "-p", "-c", "-O", "qcow2", str(qcow), f"{qcow}.new"])
+    Path(f"{qcow}.new").replace(qcow)
+
+
+def fdisk(info: ReleaseInfo) -> None:
+    version, release = info.version, info.release
+    qcow = Path(f"retrobian-img/{version}-{release}.qcow2")
+    run(["sudo", "modprobe", "nbd", "max_part=63"])
+    run(["sudo", "qemu-nbd", "-c", "/dev/nbd0", "--cache=writeback", str(qcow)])
+    run(["sudo", "sfdisk", "-d", "/dev/nbd0"])
+    run(["sudo", "qemu-nbd", "-d", "/dev/nbd0"])
+
+
+def ensure_hd_images(info: ReleaseInfo) -> Path:
+    version, release = info.version, info.release
+    hd = Path(f"{version}-{release}.qcow2")
+    base = Path(f"retrobian-img/{hd.name}")
+    if not hd.exists() and base.exists():
+        run(["qemu-img", "create", "-f", "qcow2", "-F", "qcow2", "-b", str(base), str(hd)])
+    elif not hd.exists():
+        run(
+            [
+                "qemu-img",
+                "create",
+                "-f",
+                "qcow2",
+                "-F",
+                "qcow2",
+                "-o",
+                f'backing_file=json:{{"file.driver":"http",,"file.timeout":"10",,"file.url":"http://img.retrobian.org.uk/{hd.name}"}}',
+                str(hd),
+            ]
+        )
+    return hd
+
+
+def ensure_repo_disk(info: ReleaseInfo) -> Path:
+    version, release = info.version, info.release
+    repo_qcow = Path(f"retrobian-repo/{version}-{release}-repo.qcow2")
+    if not repo_qcow.exists():
+        run(["qemu-img", "create", "-f", "qcow2", str(repo_qcow), "200M"])
+        run(["sudo", "modprobe", "nbd", "max_part=63"])
+        run(["sudo", "qemu-nbd", "-c", "/dev/nbd0", "--cache=writeback", str(repo_qcow)])
+        run(["sudo", "parted", "/dev/nbd0", "mklabel", "msdos"])
+        run(["sudo", "parted", "/dev/nbd0", "mkpart", "pri", "1", "100%"])
+        run(["sudo", "mkfs.ext2", "-E", "revision=0", "/dev/nbd0p1"])
+        run(["sudo", "qemu-nbd", "-d", "/dev/nbd0"])
+    return repo_qcow
+
+
+def run_vm(info: ReleaseInfo, base_opts: list[str]) -> None:
+    version, release = info.version, info.release
+
+    opts = base_opts.copy()
+    hd = ensure_hd_images(info)
+    opts.extend([
+        "--device", "ide-hd,drive=ide0-hd0,bus=ide.0,unit=0",
+        "--blockdev", f"qcow2,node-name=ide0-hd0,file.driver=file,file.filename={hd},cache-size={256*1024*1024}",
+    ])
+
+    repo_qcow = ensure_repo_disk(info)
+    opts.extend([
+        "--device", "ide-hd,drive=ide0-hd1,bus=ide.0,unit=1",
+        "--blockdev", f"qcow2,node-name=ide0-hd1,file.driver=file,file.filename={repo_qcow}",
+        "--device", "ne2k_isa,netdev=net0",
+        "-monitor", "telnet:127.0.0.1:3333,server,nowait",
+    ])
+
+    net = "bridge"
+    if net == "bridge":
+        opts.extend(["--netdev", "tap,id=net0,ifname=retrobian0,script=no,downscript=no"])
+        subprocess.Popen(
+            ["bash", "-lc", "sleep 10; sudo ip link set retrobian0 up; sudo ip link set retrobian0 master virbr0"]
+        )
+    else:
+        opts.extend(
+            [
+                "--netdev",
+                "user,id=net0,net=192.168.122.0/24,host=192.168.122.1,dns=192.168.122.2,hostfwd=tcp::2323-192.168.122.10:23",
+            ]
+        )
+
+    opts.extend(["--name", f"Debian-{release}-{version}", "--enable-kvm", "--vga", "cirrus"])
+
+    subprocess.Popen(["bash", "-lc", "sleep 5; sudo rm /tmp/shot*; ./cap.sh"])
+    run(["sudo", "qemu-system-i386", *opts])
+
+
+def main(argv: list[str]) -> int:
+    if len(argv) < 2:
+        print("Usage: ./retrobian <mode> [version] [qemu opts ...]", file=sys.stderr)
+        return 1
+
+    mode = argv[1]
+
+    if mode == "clean":
+        rm_glob("*.qcow2")
+        rm_glob("*.img")
+        return 0
+
+    if mode == "genallrepo":
+        for version in ALL_REPO_VERSIONS:
+            run([str(Path(argv[0])), "genrepo", version])
+        return 0
+
+    if len(argv) < 3:
+        print(f"Mode '{mode}' requires a version argument.", file=sys.stderr)
+        return 1
+
+    version = argv[2]
+    info = release_for(version)
+    extra_opts = argv[3:]
+    if version == "1.1":
+        extra_opts.extend(["--device", "isa-serial,chardev=serial0", "--chardev", "msmouse,id=serial0"])
+
+    if mode == "genrepo":
+        genrepo(info)
+        return 0
+
+    if mode == "build":
+        for path in [
+            f"{version}-{info.release}.fda.img",
+            f"{version}-{info.release}.fdb.img",
+            f"{version}-{info.release}.qcow2",
+            f"retrobian-repo/{version}-{info.release}-repo.qcow2",
+            f"retrobian-img/{version}-{info.release}.qcow2",
+        ]:
+            Path(path).unlink(missing_ok=True)
+        run([str(Path(argv[0])), "genrepo", version])
+        size = "200M" if version == "0.91" else "1G"
+        run(["qemu-img", "create", "-f", "qcow2", f"retrobian-img/{version}-{info.release}.qcow2", size])
+
+    if mode in {"build", "geninstaller"}:
+        fda, fdb = build_or_geninstaller_images(info, mode)
+        if mode == "geninstaller":
+            return 0
+        extra_opts.extend(["--boot", "a", "--device", "floppy,drive=floppy0,unit=0", "--blockdev", f"driver=file,node-name=floppy0,filename={fda}"])
+        if fdb is not None:
+            extra_opts.extend(["--device", "floppy,drive=floppy1,unit=1", "--blockdev", f"driver=file,node-name=floppy1,filename={fdb}"])
+
+    if mode == "deflate":
+        deflate(info)
+        return 0
+
+    if mode == "fdisk":
+        fdisk(info)
+        return 0
+
+    run_vm(info, extra_opts)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))
