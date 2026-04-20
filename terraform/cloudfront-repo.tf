@@ -1,6 +1,6 @@
 module "cloudfront_repo" {
   source  = "terraform-aws-modules/cloudfront/aws"
-  version = "6.4.0"
+  version = "6.4.1"
 
   aliases = [
     "repo.retrobian.org.uk"
