@@ -1,6 +1,6 @@
 module "cloudfront_img" {
   source  = "terraform-aws-modules/cloudfront/aws"
-  version = "6.4.0"
+  version = "6.7.0"
 
   aliases = [
     "img.retrobian.org.uk"
