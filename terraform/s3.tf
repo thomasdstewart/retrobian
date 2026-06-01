@@ -1,6 +1,6 @@
 module "s3_bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "5.11.0"
+  version = "5.14.0"
 
   bucket = "retrobian-ouquejei"
   #  block_public_acls       = true
