@@ -1,6 +1,6 @@
 module "s3_bucket_img" {
   source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "5.11.0"
+  version = "5.14.0"
 
   bucket = "retrobian-eewavito"
   #  block_public_acls       = true
